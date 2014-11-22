@@ -24,7 +24,7 @@ binomialbcp <- function(x, n , prior=list(a=.5, b=.5), control=bbbcp.control()) 
   l <- function(data){
     x <- sum(data$x)
     n <- sum(data$n)
-    lbeta(a=x + prior$a, b=n - x + prior$b) + lprior
+    lbeta(a=x + prior$a, b=n - x + prior$b) - lprior
   }
   h <- memoise(function(ngroups) {
     a = ngroups+1
@@ -97,4 +97,7 @@ bbbcp.control <- function(mcmc.iterations=10, mcmc.burnin=500, mcmc.thin=20, ver
   as.list(environment())
 }
 
-
+#' @export
+rcpp_binomialbcp <- function(x, n, prior=list(a=1, b=1), control=bbbcp.control()) {
+  rcpp_bbbcp_gibbs(x, n , prior, control)
+}
