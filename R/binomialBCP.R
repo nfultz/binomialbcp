@@ -11,7 +11,8 @@
 
 binomialbcp <- function(x, n, prior=list(a=1, b=1), control=bbbcp.control()) {
   ret <- rcpp_bbbcp_gibbs(x, n, prior, control)
-  sparseMatrix(ret[[1]], ret[[2]], index1 = FALSE)
+  cpt <- sparseMatrix(ret[[1]], ret[[2]], index1 = FALSE)
+  `class<-`(list(cpt=cpt, x=x, n=n, call=match.call()), "binomialbcp")
 }
 
 # R implementation
@@ -92,6 +93,38 @@ binomialbcp <- function(x, n, prior=list(a=1, b=1), control=bbbcp.control()) {
 #' @param         verbose  if zero, no debug messages; if 1, once per mcmc step; if >1, log each Gibbs sample
 #' 
 
-bbbcp.control <- function(mcmc.iterations=100, mcmc.burnin=500, mcmc.thin=5, verbose=FALSE) {
+bbbcp.control <- function(mcmc.iterations=100, mcmc.burnin=50, mcmc.thin=5, verbose=FALSE) {
   as.list(environment())
 }
+
+
+#' Plot a Binomial BCP sample
+#' 
+#' @param x a binomialbcp sample
+#' 
+#' @export
+plot.binomialbcp <- function(x, ...) {
+  p   <- rowMeans( apply(x$cpt, 1, function(r) {g <- cumsum(r); ave(x$x,g) / ave(x$n, g) }  ) ) 
+  cp <- with(x, colMeans(cpt))
+  dat <- data.frame("cpt%"=cp, p=p)
+  
+  opar <- par(mfrow=2:1)
+  on.exit(par(opar))
+  
+  plot(dat[[2]], type='l', ylim=0:1, ylab="Posterior means", xlab="")
+  plot(dat[[1]], type='l', ylim=0:1, ylab="P(Change at time i)")
+  
+}
+  
+#' Summarize a Binomial BCP sample
+#' 
+#' @param x a binomialbcp sample
+#' 
+#' @export
+summary.binomialbcp <- function(x, ...) {
+  
+  NULL
+}
+
+
+

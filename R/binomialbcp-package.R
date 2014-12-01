@@ -1,6 +1,6 @@
-#' Bayesian Changepoint 
+#' Bayesian Changepoint for Binomial Data 
 #'
-#' Roxygen is a Doxygen-like documentation system for R; allowing
+#' This package provides a binomial variant of bayesian changepoint analysis.
 #'
 #' @author
 #' Neal Fultz \email{njf@@zestfinance.com},
@@ -9,4 +9,5 @@
 #' @docType package
 #' @useDynLib binomialbcp
 #' @import Rcpp
+#' @import Matrix
 NULL
