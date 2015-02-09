@@ -1,8 +1,6 @@
 #' US Presidential Election Results for Kansas
 #' 
 #' 
-#' @docType data
-#' @source Dave Leip's Atlas of US Presidential Elections \url{http://uselectionatlas.org/RESULTS/compare.php?year=2012&fips=20&f=1&off=0&elect=0&type=state}
 #'
 kansas <- utils:::read.table(header=TRUE, text="
 Year  TotalVote	Democrat	Republican	Independent	Other
