@@ -4,10 +4,9 @@ using namespace Rcpp;
 
 
 double l(double x, double n, List prior) {
-  return ::Rf_lbeta(x + prior["a"], n - x + prior["b"]) - prior["norm"];
+  return ::Rf_lbeta(x + (double) prior["a"], n - x + (double) prior["b"]) - (double) prior["norm"];
 }
 
-//[[Rcpp::export]]
 int rcpp_bbbcp_gibbs_step(IntegerVector x, IntegerVector n, LogicalVector cpt, int b, 
                           NumericVector h, List prior) {
 
@@ -64,19 +63,20 @@ List rcpp_bbbcp_gibbs(IntegerVector x, IntegerVector n, List prior, List control
     int b = 1;
     
     // MCMC control constants
-    int      M = as<int>(control["mcmc.iterations"]);
-    int   thin = as<int>(control["mcmc.thin"]);
-    int burnin = as<int>(control["mcmc.burnin"]);
-        
+    int       M = as<int>(control["mcmc.iterations"]);
+    int    thin = as<int>(control["mcmc.thin"]);
+    int  burnin = as<int>(control["mcmc.burnin"]);
+    int verbose = as<int>(control["verbose"]);
+    
     //Precalculate constants
     prior["norm"] = R::lbeta(prior["a"], prior["b"]);
     
-    NumericVector h(16);
+    NumericVector h(k - 1);
     for(int i = 1; i < h.length(); i++)
       h[i] = R::lbeta(i+1, k - i);
       
-    
-    // Assumming approx 15 cpts  for now.
+    // Manual sparse matrix
+    // Assumming approx 15 cpts  for default.
     IntegerVector cpt_i(M * 15);
     IntegerVector cpt_j(M * 15);
     int cpt_index = 0;
@@ -95,10 +95,13 @@ List rcpp_bbbcp_gibbs(IntegerVector x, IntegerVector n, List prior, List control
       
       // Run thinned iterations inplace
       for(int j = 0; j < thin; j++) {
-//        Rcout << "++" << i << "**" << j  << "\n";
         b = rcpp_bbbcp_gibbs_step(x, n, cpt, b, h, prior);
       }  
-         
+      
+      if(verbose) {
+        ::Rprintf("Iteration %4d: %4d changepts\n", i, b);        
+      }
+      
       // save out
       for(int j = 0; j < k; j++) {
         if(cpt[j]) {

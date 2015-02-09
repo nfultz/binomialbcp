@@ -8,10 +8,13 @@
 #' @param control  a binomialBCP.control object 
 #'
 #' @return a list containing the posterior samples of changepoints and expected values of proportions 
+#' @examples
+#'  data(test)
+#'  binomialbcp(test$x, test$n)
 
-binomialbcp <- function(x, n, prior=list(a=1, b=1), control=bbbcp.control()) {
+binomialbcp <- function(x, n, prior=list(a=1, b=1), control=binomialbcp.control()) {
   ret <- rcpp_bbbcp_gibbs(x, n, prior, control)
-  cpt <- sparseMatrix(ret[[1]], ret[[2]], index1 = FALSE)
+  cpt <- sparseMatrix(ret[[2]], ret[[1]], index1 = FALSE) #implicit transpose
   `class<-`(list(cpt=cpt, x=x, n=n, call=match.call()), "binomialbcp")
 }
 
@@ -83,7 +86,7 @@ binomialbcp <- function(x, n, prior=list(a=1, b=1), control=bbbcp.control()) {
 
 #' BB-BCP MCMC settings 
 #'
-#' This function makes autocomplete work.
+#' This function makes autocomplete work for \code{binomialbcp}.
 #'
 #' @export
 #'
@@ -93,7 +96,8 @@ binomialbcp <- function(x, n, prior=list(a=1, b=1), control=bbbcp.control()) {
 #' @param         verbose  if zero, no debug messages; if 1, once per mcmc step; if >1, log each Gibbs sample
 #' 
 
-bbbcp.control <- function(mcmc.iterations=100, mcmc.burnin=50, mcmc.thin=5, verbose=FALSE) {
+binomialbcp.control <- function(mcmc.iterations=100, mcmc.burnin=50, mcmc.thin=5, verbose=0) {
+  if(verbose > 1) message("Verbose > 1 not implemented yet")
   as.list(environment())
 }
 
@@ -101,30 +105,48 @@ bbbcp.control <- function(mcmc.iterations=100, mcmc.burnin=50, mcmc.thin=5, verb
 #' Plot a Binomial BCP sample
 #' 
 #' @param x a binomialbcp sample
+#' @param ... passed on to plot
 #' 
 #' @export
 plot.binomialbcp <- function(x, ...) {
-  p   <- rowMeans( apply(x$cpt, 1, function(r) {g <- cumsum(r); ave(x$x,g) / ave(x$n, g) }  ) ) 
-  cp <- with(x, colMeans(cpt))
-  dat <- data.frame("cpt%"=cp, p=p)
-  
-  opar <- par(mfrow=2:1)
+  dat <- summary(x)
+  opar <- par(mfrow=2:1, yaxs="i")
   on.exit(par(opar))
   
-  plot(dat[[2]], type='l', ylim=0:1, ylab="Posterior means", xlab="")
-  plot(dat[[1]], type='l', ylim=0:1, ylab="P(Change at time i)")
+  par(mar=c(0.5,5,2,0.5), xaxt='n')
+  plot(dat[[2]], type='l', ylim=0:1, ylab=expression(hat(p)[t]), 
+       xlab="", ...)
+  points(x$x / x$n, pch=4)
+  grid()
+  
+  par(mar=c(3,5,0.5,0.5), xaxt='s')
+  plot(dat[[1]], type='l', ylim=0:1, ylab=expression(P(C[i] *"|"* X)), 
+       main=NULL, mar=c(3,2,0,0.2), mai=c(1,1,0,0))
+  grid()
   
 }
   
 #' Summarize a Binomial BCP sample
 #' 
-#' @param x a binomialbcp sample
+#' Average over the MCMC samples to estimate changepoints and proportions.
+#' 
+#' @param object a binomialbcp sample
+#' @param ... (unused)
+#' 
+#' @return a dataframe containing the probability of a change point and estimated proportion for each time point.
 #' 
 #' @export
-summary.binomialbcp <- function(x, ...) {
-  
-  NULL
+summary.binomialbcp <- function(object, ...) {
+  p <- rowMeans( apply(object$cpt, 2, function(r) {g <- cumsum(r); ave(object$x,g) / ave(object$n, g) }  ) ) 
+  cp <- rowMeans(object$cpt)
+  data.frame("cpt%"=cp, p=p)
 }
 
-
+# Log Likelihood of a draw
+L <- function(x, n, cpt) {
+  g <- cumsum(cpt)
+  p <- ave(x,g) / ave(n, g)
+  L <- sum( dbinom(cpt, 1, mean(cpt), log=TRUE),lchoose(n, x) , 
+            log(p) * x , log1p(-p) * (n - x), na.rm=TRUE )
+}
 
