@@ -9,8 +9,8 @@
 #'
 #' @return a list containing the posterior samples of changepoints and expected values of proportions 
 #' @examples
-#'  data(test)
-#'  binomialbcp(test$x, test$n)
+#'  data(kansas)
+#'  binomialbcp(kansas$Democrat, kansas$TotalVote)
 
 binomialbcp <- function(x, n, prior=list(a=1, b=1), control=binomialbcp.control()) {
   ret <- rcpp_bbbcp_gibbs(x, n, prior, control)
@@ -135,6 +135,7 @@ plot.binomialbcp <- function(x, ...) {
 #' 
 #' @return a dataframe containing the probability of a change point and estimated proportion for each time point.
 #' 
+#' @method summary binomialbcp
 #' @export
 summary.binomialbcp <- function(object, ...) {
   p <- rowMeans( apply(object$cpt, 2, function(r) {g <- cumsum(r); ave(object$x,g) / ave(object$n, g) }  ) ) 
