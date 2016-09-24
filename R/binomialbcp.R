@@ -14,7 +14,7 @@
 
 binomialbcp <- function(x, n, prior=list(a=1, b=1), control=binomialbcp.control()) {
   ret <- rcpp_bbbcp_gibbs(x, n, prior, control)
-  cpt <- sparseMatrix(ret[[2]], ret[[1]], index1 = FALSE) #implicit transpose
+  cpt <- sparseMatrix(ret[[2]], ret[[1]], index1 = FALSE, dims=c(length(n),ret[[3]])) #implicit transpose
   `class<-`(list(cpt=cpt, x=x, n=n, call=match.call()), "binomialbcp")
 }
 

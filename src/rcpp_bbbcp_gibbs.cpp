@@ -61,6 +61,7 @@ List rcpp_bbbcp_gibbs(IntegerVector x, IntegerVector n, List prior, List control
 
     int k = x.length();
     int b = 1;
+    int draws = 0;
     
     // MCMC control constants
     int       M = as<int>(control["mcmc.iterations"]);
@@ -103,6 +104,7 @@ List rcpp_bbbcp_gibbs(IntegerVector x, IntegerVector n, List prior, List control
       }
       
       // save out
+      draws++;
       for(int j = 0; j < k; j++) {
         if(cpt[j]) {
           cpt_i[cpt_index] = i;
@@ -113,6 +115,6 @@ List rcpp_bbbcp_gibbs(IntegerVector x, IntegerVector n, List prior, List control
     }
     
 
-    return List::create(cpt_i, cpt_j) ;
+    return List::create(cpt_i, cpt_j, draws) ;
 }
 

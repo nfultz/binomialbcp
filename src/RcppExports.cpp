@@ -9,17 +9,13 @@ using namespace Rcpp;
 List rcpp_bbbcp_gibbs(IntegerVector x, IntegerVector n, List prior, List control);
 RcppExport SEXP binomialbcp_rcpp_bbbcp_gibbs(SEXP xSEXP, SEXP nSEXP, SEXP priorSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< IntegerVector >::type x(xSEXP );
-        Rcpp::traits::input_parameter< IntegerVector >::type n(nSEXP );
-        Rcpp::traits::input_parameter< List >::type prior(priorSEXP );
-        Rcpp::traits::input_parameter< List >::type control(controlSEXP );
-        List __result = rcpp_bbbcp_gibbs(x, n, prior, control);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< IntegerVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type n(nSEXP);
+    Rcpp::traits::input_parameter< List >::type prior(priorSEXP);
+    Rcpp::traits::input_parameter< List >::type control(controlSEXP);
+    __result = Rcpp::wrap(rcpp_bbbcp_gibbs(x, n, prior, control));
+    return __result;
 END_RCPP
 }
